@@ -43,6 +43,7 @@ def getMask(img, show=False):
     planes = cv2.split(imHSV)
     ret, thresh2 = cv2.threshold(planes[1], 80, 255, cv2.THRESH_TRUNC)
     ret, thresh2 = cv2.threshold(thresh2, 50, 255, cv2.THRESH_BINARY)
+
     if show:
         cv2.imshow('mask', thresh2)
 
