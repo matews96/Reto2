@@ -34,3 +34,32 @@ def normalizeBGR(image):
     out.append(planes[2])
     out = cv2.merge(out)
     return out
+
+def getMask(img, show=False):
+
+    imgblurred = cv2.GaussianBlur(img, (3, 3), 0)
+    img = cv2.addWeighted(img, 1.5, imgblurred, -0.5, 0)
+    imHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    planes = cv2.split(imHSV)
+    ret, thresh2 = cv2.threshold(planes[1], 80, 255, cv2.THRESH_TRUNC)
+    ret, thresh2 = cv2.threshold(thresh2, 50, 255, cv2.THRESH_BINARY)
+    if show:
+        cv2.imshow('mask', thresh2)
+
+    return thresh2
+
+def remBackground(img, show=False):
+    mask = getMask(img, False)
+    planes = cv2.split(img)
+    background = []
+    for plane in planes:
+        background.append(cv2.bitwise_or(cv2.bitwise_and(plane, mask), cv2.bitwise_not(mask)))
+
+    img = cv2.merge(background)
+
+    if show:
+        cv2.imshow('Background removed', img)
+
+    return img
+
+
