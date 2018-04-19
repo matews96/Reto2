@@ -33,18 +33,22 @@ def plot_colors2(hist, centroids):
 
 img = cv2.imread("Data/IMG_0173.JPG")
 img = cv2.resize(img, None, fx=0.15, fy=0.15)
-img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+
+planes = cv2.split(img)
 
 img = img.reshape((img.shape[0] * img.shape[1],3)) #represent as row*column,channel number
+print(img.shape)
+#cv2.imshow('h', img)
 clt = KMeans(n_clusters=8) #cluster number
 clt.fit(img)
 
 hist = find_histogram(clt)
 bar = plot_colors2(hist, clt.cluster_centers_)
 
-plt.axis("off")
-plt.imshow(bar)
-plt.show()
+#plt.axis("off")
+#plt.imshow(bar)
+#plt.show()
 
 
 cv2.waitKey(0)
