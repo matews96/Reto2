@@ -65,7 +65,7 @@ def remBackground(img, show=False):
 
     return img
 
-def getClusteredImage(img, clusters=9, show=False):
+def getClusteredImage(img, clusters=2, show=False):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
     a = img.shape[0]
     b = img.shape[1]

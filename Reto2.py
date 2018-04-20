@@ -9,38 +9,43 @@ import Auxiliares as aux
 # mask = aux.getMask(img, False)
 #cv2.imshow('img', img)
 
-img = []
-cap = cv2.VideoCapture(1)
+
 
 sizexx = 600
 sizeyy= 600
 sizex = int((960 - sizexx)/2)
 sizey = int((1280 - sizeyy)/2)
-counter = 0
-while(cap.isOpened()):
-    ret, frame = cap.read()
-    frame = frame[sizex:sizex+sizexx, sizey:sizey+sizeyy]
+
+clusters = 8
+if True:
+    img = cv2.imread("Data/mm15.png")
+else:
+    img = []
+    cap = cv2.VideoCapture(1)
+    counter = 0
+    while (cap.isOpened()):
+        ret, frame = cap.read()
+        frame = frame[sizex:sizex + sizexx, sizey:sizey + sizeyy]
+
+        cv2.imshow('frame1', frame)
+        if cv2.waitKey(1) & 0xFF == ord('s'):
+            cv2.imwrite('Data/mm.png', frame)
+            img = frame
+            print("Clustering...")
+            break
+        if cv2.waitKey(1) & 0xFF == ord('g'):
+            counter = counter + 1
+            cv2.imwrite('Data/mm' + str(counter) + '.png', frame)
+
+            print(counter)
+            img = frame
+
+    cv2.destroyAllWindows()
 
 
-    cv2.imshow('frame1',frame)
-    if cv2.waitKey(1) & 0xFF == ord('s'):
-        cv2.imwrite('Data/mm.png', frame)
-        img = frame
-        print("Clustering...")
-        break
-    if cv2.waitKey(1) & 0xFF == ord('g'):
-        counter = counter + 1
-        cv2.imwrite('Data/mm'+str(counter)+'.png', frame)
-
-        print(counter)
-        img = frame
-
-cv2.destroyAllWindows()
 img = cv2.resize(img, None, fx=0.8, fy=0.8)
-mask = aux.getMask(img, False)
-
-
-
+mask = aux.getMask(img, True)
+cv2.imshow('img', img)
 
 planes = cv2.split(img)
 background = []
@@ -51,16 +56,16 @@ img = aux.remBackground(img, True)
 
 
 
-clt1, clustered = aux.getClusteredImage(img, show=True)
-clt2, clustered = aux.getClusteredImage(clustered, show=True)
-clt3, clustered = aux.getClusteredImage(clustered, show=True)
+clt1, clustered = aux.getClusteredImage(img, clusters,show=True)
+clt2, clustered = aux.getClusteredImage(clustered,clusters, show=True)
+clt3, clustered = aux.getClusteredImage(clustered,clusters, show=True)
 
-unique, counts = np.unique(clt3.labels_, return_counts=True)
+unique, counts = np.unique(clt2.labels_, return_counts=True)
 print(dict(zip(unique, counts)))
 
-centers = clt3.cluster_centers_.astype(int)
-for i in range(1,8):
-    if counts[i] > 1000:
+centers = clt2.cluster_centers_.astype(int)
+for i in range(1,clusters):
+    if counts[i] > 500:
         auxIm = np.zeros((img.shape[0],img.shape[1],3), np.uint8)
         auxIm[:,:,0] = 100
         auxIm[:, :, 1] = centers[i, 0]
@@ -79,11 +84,49 @@ clustered = cv2.morphologyEx(clustered, cv2.MORPH_CLOSE, kernel)
 cv2.imshow("gh", clustered)
 gray = cv2.cvtColor(clustered,cv2.COLOR_BGR2GRAY)
 ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
-
-
+im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+#cv2.drawContours(clustered, contours, -1, (0,255,0), 2)
 planes = cv2.split(img)
+cv2.imshow("gh", clustered)
+
+centers = []
+radiuses = []
+colors = []
+
+for contour in contours:
+    (x, y), radius = cv2.minEnclosingCircle(contour)
+    center = (int(x), int(y))
+    centers.append(center)
+    radius = int(radius)
+    radiuses.append(radius)
+    color = (int(clustered[int(y), int(x), 0]), int(clustered[int(y), int(x), 1]), int(clustered[int(y), int(x), 2]))
+    colors.append(color)
+    cv2.circle(clustered, center, radius, color, -1)
+    cv2.circle(clustered, center, radius, (255,0,255), 2)
+
+finalcluster = len(set(colors))
+uniquecolors = list(set(colors))
+uniquecolorcount = []
 
 
+ont = cv2.FONT_HERSHEY_SIMPLEX
+
+for color in uniquecolors:
+    uniquecolorcount.append((colors.count(color)))
+
+for uniquecolcnt, uniquecolor in zip(uniquecolorcount,uniquecolors):
+    for i in range(0, uniquecolcnt-1):
+        for color, center in zip(colors,centers):
+            print(color)
+            print(uniquecolcnt)
+            if color == uniquecolor:
+                cv2.putText(clustered, str(i), center, ont, 0.8, (0, 0, 0), 2, cv2.LINE_AA)
+
+
+
+
+
+cv2.imshow("gh", clustered)
 # plt.scatter(planes[1].reshape(274670), planes[2].reshape(274670))
 # axes = plt.gca()
 # axes.set_xlim([0,250])
