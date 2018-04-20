@@ -1,5 +1,7 @@
 import numpy as np
 import cv2
+from sklearn.cluster import KMeans
+from sklearn.cluster import AffinityPropagation
 
 def printComponents(image):
     planes = cv2.split(image)
@@ -62,5 +64,45 @@ def remBackground(img, show=False):
         cv2.imshow('Background removed', img)
 
     return img
+
+def getClusteredImage(img, clusters=9, show=False):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2LAB)
+    a = img.shape[0]
+    b = img.shape[1]
+    planes = cv2.split(img)
+    imgAB = []
+    imgAB.append(planes[1])
+    imgAB.append(planes[2])
+    imgAB.append(planes[0])
+    imgAB = cv2.merge(imgAB)
+    img = imgAB
+    img2 = img.reshape((a*b, 3))
+
+    clt = KMeans(n_clusters=clusters)  # cluster number
+    clt.fit(img2)
+    clt.fit_predict(img2)
+
+    labels = clt.labels_.reshape(a, b)
+    print(len(set(clt.labels_)))
+
+    for i in range(len(set(clt.labels_))):
+        planes[1][np.where(labels == i)] = clt.cluster_centers_[i][0]
+        planes[2][np.where(labels == i)] = clt.cluster_centers_[i][1]
+        planes[0][np.where(labels == i)] = clt.cluster_centers_[i][2]
+
+    final = []
+    a = 100 * np.ones(planes[0].shape, dtype='uint8')
+    a[np.where(labels == 0)] = 500
+    final.append(a)
+    final.append(planes[1])
+    final.append(planes[2])
+    image = cv2.merge(final)
+    image = cv2.cvtColor(image, cv2.COLOR_LAB2BGR)
+
+    if show:
+        cv2.imshow('colors clusters', image)
+
+    return clt, image
+
 
 
