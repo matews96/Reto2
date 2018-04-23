@@ -17,11 +17,11 @@ sizex = int((960 - sizexx)/2)
 sizey = int((1280 - sizeyy)/2)
 
 clusters = 8
-if True:
-    img = cv2.imread("Data/mm15.png")
+if False:
+    img = cv2.imread("Data/mm3.png")
 else:
     img = []
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
     counter = 0
     while (cap.isOpened()):
         ret, frame = cap.read()
@@ -60,10 +60,11 @@ clt1, clustered = aux.getClusteredImage(img, clusters,show=True)
 clt2, clustered = aux.getClusteredImage(clustered,clusters, show=True)
 clt3, clustered = aux.getClusteredImage(clustered,clusters, show=True)
 
-unique, counts = np.unique(clt2.labels_, return_counts=True)
+unique, counts = np.unique(clt3.labels_, return_counts=True)
 print(dict(zip(unique, counts)))
 
-centers = clt2.cluster_centers_.astype(int)
+centers = clt3.cluster_centers_.astype(int)
+
 for i in range(1,clusters):
     if counts[i] > 500:
         auxIm = np.zeros((img.shape[0],img.shape[1],3), np.uint8)
@@ -114,13 +115,27 @@ ont = cv2.FONT_HERSHEY_SIMPLEX
 for color in uniquecolors:
     uniquecolorcount.append((colors.count(color)))
 
-for uniquecolcnt, uniquecolor in zip(uniquecolorcount,uniquecolors):
-    for i in range(0, uniquecolcnt-1):
-        for color, center in zip(colors,centers):
-            print(color)
-            print(uniquecolcnt)
-            if color == uniquecolor:
-                cv2.putText(clustered, str(i), center, ont, 0.8, (0, 0, 0), 2, cv2.LINE_AA)
+print(uniquecolorcount)
+print(uniquecolors)
+
+
+
+for uniquecol in uniquecolors:
+    counter = 1
+    for i in range(len(centers)):
+
+        if uniquecol == colors[i]:
+            cv2.putText(clustered, str(counter), centers[i], ont, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
+            counter = counter + 1
+
+
+# for uniquecolcnt, uniquecolor in zip(uniquecolorcount,uniquecolors):
+#     for i in range(0, uniquecolcnt-1):
+#         for color, center in zip(colors,centers):
+#             print(color)
+#             print(uniquecolcnt)
+#             if color == uniquecolor:
+#                 cv2.putText(clustered, str(i), center, ont, 0.8, (0, 0, 0), 2, cv2.LINE_AA)
 
 
 

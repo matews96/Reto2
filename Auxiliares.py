@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 from sklearn.cluster import KMeans
-from sklearn.cluster import AffinityPropagation
+import matplotlib.pyplot as plt
 
 def printComponents(image):
     planes = cv2.split(image)
@@ -77,6 +77,8 @@ def getClusteredImage(img, clusters=2, show=False):
     imgAB = cv2.merge(imgAB)
     img = imgAB
     img2 = img.reshape((a*b, 3))
+    plt.scatter(img2[1,:], img2[0,:])
+    plt.show()
 
     clt = KMeans(n_clusters=clusters)  # cluster number
     clt.fit(img2)
